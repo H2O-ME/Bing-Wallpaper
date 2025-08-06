@@ -1,0 +1,49 @@
+name: Bing Wallpaper
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 16 * * *' 
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 
+    
+    - name: 下载并提交Bing背景图
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        TODAY=$(date +'%Y%m%d')
+        echo "今日日期: $TODAY"
+        
+        mkdir -p bing-wallpaper
+        
+        echo "开始下载图片..."
+        curl -L -o "bing-wallpaper/$TODAY.jpg" \
+          -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
+          --connect-timeout 30 \
+          --max-time 120 \
+          "https://bing.img.run/uhd.php"
+        
+        if [ -f "bing-wallpaper/$TODAY.jpg" ] && [ -s "bing-wallpaper/$TODAY.jpg" ]; then
+          FILE_SIZE=$(stat -c%s "bing-wallpaper/$TODAY.jpg")
+          echo "下载成功，文件大小: $FILE_SIZE 字节"
+          
+          git pull --rebase
+          git add bing-wallpaper/$TODAY.jpg
+          git commit -m "🖼️ 添加每日Bing背景图: $TODAY"
+          git push
+          
+          echo "✅ 成功提交到仓库"
+        else
+          echo "❌ 下载失败或文件为空"
+          exit 1
+        fi
