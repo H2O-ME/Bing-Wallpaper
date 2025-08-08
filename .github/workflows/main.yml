@@ -3,7 +3,7 @@ name: Bing Wallpaper
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 16 * * *' 
+    - cron: '0 0 * * *' 
 
 jobs:
   download:
